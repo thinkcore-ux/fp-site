@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>FLOWERPUNK — Цветочная подписка для ресторанов</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;500;700;800;900&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Fraunces:wght@500;700;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel" src="components.jsx"></script>
+<script type="text/babel" src="images.jsx"></script>
+<script type="text/babel" src="content.jsx"></script>
+<script type="text/babel" src="sections.jsx"></script>
+<script type="text/babel" src="calculator.jsx"></script>
+
+<script type="text/babel">
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "titleFont": "metana",
+  "palette": "green",
+  "tone": "punk",
+  "heroInk": "wine"
+}/*EDITMODE-END*/;
+
+function Nav({ c }) {
+  const [open, setOpen] = React.useState(false);
+  const [showCTA, setShowCTA] = React.useState(false);
+  const [hidden, setHidden] = React.useState(false);
+
+  React.useEffect(() => {
+    document.body.style.overflow = open ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [open]);
+
+  React.useEffect(() => {
+    let lastY = window.scrollY;
+    let ticking = false;
+    const THRESHOLD = 6; // ignore sub-pixel jitter
+
+    const update = () => {
+      const y = window.scrollY;
+      const vh = window.innerHeight;
+      const docH = document.documentElement.scrollHeight;
+      const why = document.getElementById("why");
+      const trigger = why
+        ? why.getBoundingClientRect().top + y - 200
+        : 600;
+      setShowCTA(y > trigger);
+
+      const atTop = y < vh * 0.9;           // visible on first screen
+      const atBottom = y + vh >= docH - 80;  // reveal at very bottom
+      const dy = y - lastY;
+
+      if (atTop || atBottom) {
+        setHidden(false);
+      } else if (Math.abs(dy) > THRESHOLD) {
+        setHidden(dy > 0); // scrolling down -> hide; up -> show
+      }
+      lastY = y;
+      ticking = false;
+    };
+
+    const onScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(update);
+        ticking = true;
+      }
+    };
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, []);
+
+  return (
+    <nav className={"fp-nav" + (hidden ? " is-hidden" : "") + (showCTA ? " is-scrolled" : "")}>
+      <div className="fp-nav-inner">
+        <a href="#why" className="fp-logo" aria-label="FLOWERPUNK — В чём фишка">
+          <img src="logo.svg" alt="FLOWERPUNK" />
+        </a>
+        <div className="fp-nav-links">
+          {c.nav.map((n, i) => (
+            <a key={i} href={n.href} className={n.soon ? "is-soon" : ""}>
+              {n.label}
+              {n.soon ? <span className="fp-nav-soon">скоро</span> : null}
+            </a>
+          ))}
+        </div>
+        <button
+          type="button"
+          aria-label="Меню"
+          className={"fp-burger" + (open ? " open" : "")}
+          onClick={() => setOpen(o => !o)}
+        ><span className="fp-burger-icon"></span></button>
+      </div>
+      {open && (
+        <div className="fp-mobile-menu" role="dialog" aria-label="Меню">
+          {c.nav.map((n, i) => (
+            <a key={i} href={n.href} onClick={() => setOpen(false)}>
+              {n.label}{n.soon ? " (скоро)" : ""}
+            </a>
+          ))}
+          <a href="#contact" className="fp-cta fp-cta--accent" onClick={() => setOpen(false)}>{c.cta} →</a>
+        </div>
+      )}
+    </nav>
+  );
+}
+
+function App() {
+  const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+  const c = window.FP_CONTENT[t.tone] || window.FP_CONTENT.punk;
+
+  React.useEffect(() => {
+    document.documentElement.setAttribute("data-palette", t.palette);
+    document.documentElement.setAttribute("data-title-font", t.titleFont);
+    document.documentElement.setAttribute("data-hero-ink", t.heroInk);
+  }, [t.palette, t.titleFont, t.heroInk]);
+
+  return (
+    <div className="fp-page">
+      <Nav c={c} />
+      <Hero c={c} />
+      <Why c={c} />
+      <Calculator c={c} />
+      <InsideTail c={c} />
+      <FAQ c={c} />
+      <Contact c={c} />
+      <Footer c={c} />
+
+      <TweaksPanel title="Tweaks">
+        <TweakSection label="Type" />
+        <TweakSelect
+          label="Title font"
+          value={t.titleFont}
+          options={[
+            { value: "unbounded",   label: "Unbounded (default)" },
+            { value: "machina",     label: "PP Neue Machina · Ultrabold" },
+            { value: "right-wide",  label: "PP Right Gothic · Wide Black" },
+            { value: "right-comp",  label: "PP Right Gothic · Compact Black" },
+            { value: "right-spat",  label: "PP Right Gothic · Spatial Black" },
+            { value: "stadio-nero", label: "Stadio Now · Nero" },
+            { value: "stadio-ban",  label: "Stadio Now · Banner" },
+            { value: "asgard-fat",  label: "Asgard · Fat" },
+            { value: "asgard-wide", label: "Asgard · Wide Xbold" },
+            { value: "g8",          label: "G8 · Bold" },
+            { value: "songer",      label: "Songer SE · Heavy" },
+            { value: "metana",      label: "Neue Metana Next · SemiBold" },
+            { value: "slifted",     label: "Slifted · Display" },
+            { value: "gropled",     label: "Gropled · Bold" },
+            { value: "bluecurve",   label: "Bluecurve · Bold" },
+            { value: "panton-rust", label: "Panton Rust · Heavy" },
+            { value: "zing-rust",   label: "Zing Rust · Base" },
+          ]}
+          onChange={(v) => setTweak("titleFont", v)}
+        />
+        <TweakSection label="Color" />
+        <TweakRadio
+          label="Accent"
+          value={t.palette}
+          options={[
+            { value: "green", label: "Acid" },
+            { value: "pink", label: "Punk" },
+            { value: "orange", label: "Coral" },
+            { value: "ink", label: "Ink" },
+          ]}
+          onChange={(v) => setTweak("palette", v)}
+        />
+        <TweakSelect
+          label="Hero ink"
+          value={t.heroInk}
+          options={[
+            { value: "aubergine", label: "Aubergine (deep plum)" },
+            { value: "wine",      label: "Wine (oxblood)" },
+            { value: "forest",    label: "Forest (deep ivy)" },
+            { value: "cobalt",    label: "Cobalt (deep blue)" },
+            { value: "chocolate", label: "Chocolate (warm brown)" },
+            { value: "ink",       label: "Ink (default near-black)" },
+          ]}
+          onChange={(v) => setTweak("heroInk", v)}
+        />
+        <TweakSection label="Voice" />
+        <TweakRadio
+          label="Tone of copy"
+          value={t.tone}
+          options={[
+            { value: "punk", label: "Punk" },
+            { value: "lux", label: "Luxe" },
+            { value: "craft", label: "Craft" },
+          ]}
+          onChange={(v) => setTweak("tone", v)}
+        />
+      </TweaksPanel>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
