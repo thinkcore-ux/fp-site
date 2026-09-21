@@ -180,15 +180,16 @@ a { color: inherit; text-decoration: none; }
   pointer-events: none;
 }
 .fp-nav-inner {
-  display: flex; align-items: center; justify-content: space-between;
-  position: relative;
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
   height: 64px;
   padding: 0 12px 0 20px;
   gap: 16px;
 }
+.fp-nav-inner > .fp-logo { justify-self: start; }
+.fp-nav-inner > .fp-burger { grid-column: 3; justify-self: end; }
 .fp-nav-links {
   display: none; gap: 2px; align-items: center;
-  flex: 1 1 auto; justify-content: center; min-width: 0;
+  grid-column: 2; justify-self: center;
 }
 .fp-logo {
   display: flex; align-items: center; gap: 8px;
@@ -1903,7 +1904,7 @@ a { color: inherit; text-decoration: none; }
 }
 @font-face {
   font-family: "G8";
-  src: url("fonts/G8/G8%20Bold.otf") format("opentype");
+  src: url("fonts/G8/G8 Bold.otf") format("opentype");
   font-weight: 700;
   font-display: swap;
 }
