@@ -12,9 +12,10 @@
   --accent-soft: #d9d9f4;            /* muted accent for chips/tints */
   --paper: #ebe7dc;
 
-  --f-display: "Unbounded", "Arial Black", system-ui, sans-serif;
+  --f-display: var(--f-system);
+  --f-system: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", system-ui, sans-serif;
   --f-mono: "JetBrains Mono", "Geist Mono", ui-monospace, Menlo, monospace;
-  --f-body: "Inter Tight", "Inter", system-ui, sans-serif;
+  --f-body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 
   --section-pad: clamp(96px, 10vw, 128px);
   --section-head-pad: clamp(32px, 4vw, 56px);
@@ -186,9 +187,8 @@ a { color: inherit; text-decoration: none; }
   gap: 16px;
 }
 .fp-nav-links {
-  display: none; gap: 4px; align-items: center;
-  position: absolute; left: 50%; top: 50%;
-  transform: translate(-50%, -50%);
+  display: none; gap: 2px; align-items: center;
+  flex: 1 1 auto; justify-content: center; min-width: 0;
 }
 .fp-logo {
   display: flex; align-items: center; gap: 8px;
@@ -203,7 +203,8 @@ a { color: inherit; text-decoration: none; }
   display: inline-flex; align-items: center;
   /* asymmetric padding to optically center the display-font caps
      (their visual midline sits slightly above the line-box geometric center) */
-  padding: 11px 14px 9px;
+  padding: 11px 12px 9px;
+  white-space: nowrap;
   border: 0;
   border-radius: 999px;
   transition: background .15s ease, color .15s ease;
@@ -226,7 +227,7 @@ a { color: inherit; text-decoration: none; }
 }
 .fp-burger:hover { background: rgba(10,10,10,0.08); }
 .fp-burger.open { background: rgba(10,10,10,0.06); }
-@media (min-width: 900px) { .fp-nav-links { display: flex; } .fp-burger { display: none; } }
+@media (min-width: 1040px) { .fp-nav-links { display: flex; } .fp-burger { display: none; } }
 .fp-burger-icon, .fp-burger-icon::before, .fp-burger-icon::after {
   content: ""; display: block; width: 16px; height: 2px;
   background: var(--ink);
@@ -1973,3 +1974,12 @@ a { color: inherit; text-decoration: none; }
   letter-spacing: var(--f-display-track, -0.04em);
   font-weight: var(--f-display-weight, 700);
 }
+
+/* display/headers use the platform system font (SF on Apple, Roboto on Android,
+   Segoe on Windows) — overrides every [data-title-font] variant */
+html, [data-title-font] {
+  --f-display: var(--f-system);
+  --f-display-weight: 800;
+  --f-display-track: -0.035em;
+}
+.display, h1, h2, h3, h4 { font-weight: var(--f-display-weight, 800); letter-spacing: var(--f-display-track, -0.035em); }
